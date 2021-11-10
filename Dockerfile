@@ -2,17 +2,32 @@ FROM sagemath/sagemath:latest
 
 USER root
 
-RUN apt-get -qq update \
+
+RUN DEBIAN_FRONTEND=noninteractive \
+    apt-get -qq update \
     && apt-get -qq install -y --no-install-recommends \
     netcat \
+    ca-certificates \
+    build-essential \
+    openssl \
     tmux \
     vim \
+    libffi-dev \
+    libssl-dev \
+    curl \
+    cargo \
+    python3-dev \
     && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && apt-get upgrade --fix-missing -y
+
+RUN /home/sage/sage/local/bin/pip install --upgrade setuptools setuptools_rust pip
+
+RUN mkdir -pv /cargo/registry/index/
 
 USER sage
 
-RUN /home/sage/sage/local/bin/pip install --no-cache-dir \
-    pwntools \
+RUN /home/sage/sage/local/bin/pip install pwntools \
     pyCryptoDome \
     z3-solver
 
@@ -36,4 +51,3 @@ ${BLUE}----------------------------------${NOCOLOR} \n\
 "
 
 CMD ["echo -e $BANNER && sage -n jupyter --NotebookApp.token='' --no-browser --ip='0.0.0.0' --port=8888"]
-
